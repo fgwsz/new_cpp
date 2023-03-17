@@ -9,5 +9,6 @@ namespace dynamic {
 	::std::string toStdString(Array    const& value);
 	::std::string toStdString(Object   const& value);
 	::std::string toStdString(Function const& value);
+	::std::string toStdString(Pointer  const& value);
 	::std::string toStdString(Value    const& value);
 }

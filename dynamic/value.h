@@ -14,10 +14,11 @@ namespace dynamic {
 	using Array    = ::std::vector<Value>               ;
 	using Object   = ::std::unordered_map<String, Value>;
 	using Function = ::std::function<Value(Value)>      ;
+	using Pointer  = Value*                             ;
 
-	class Value {
+	class Value final {
 	private:
-		::std::variant<Null,Boolean, Number, String, Array, Object, Function> data_;
+		::std::variant<Null,Boolean, Number, String, Array, Object, Function,Pointer> data_;
 	public:
 		Value(Null     const& value) { this->data_ = value; }
 		Value(Boolean  const& value) { this->data_ = value; }
@@ -26,6 +27,7 @@ namespace dynamic {
 		Value(Array    const& value) { this->data_ = value; }
 		Value(Object   const& value) { this->data_ = value; }
 		Value(Function const& value) { this->data_ = value; }
+		Value(Pointer  const& value) { this->data_ = value; }
 
 		Value():Value(Null{}){}
 		Value(Value const& value):Value() {
@@ -55,6 +57,7 @@ namespace dynamic {
 		bool isArray   () const { return ::std::holds_alternative<Array   >(this->data_); }
 		bool isObject  () const { return ::std::holds_alternative<Object  >(this->data_); }
 		bool isFunction() const { return ::std::holds_alternative<Function>(this->data_); }
+		bool isPointer () const { return ::std::holds_alternative<Pointer >(this->data_); }
 
 		Null    & getNull    () { return ::std::get<Null    >(this->data_); }
 		Boolean & getBoolean () { return ::std::get<Boolean >(this->data_); }
@@ -63,6 +66,7 @@ namespace dynamic {
 		Array   & getArray   () { return ::std::get<Array   >(this->data_); }
 		Object  & getObject  () { return ::std::get<Object  >(this->data_); }
 		Function& getFunction() { return ::std::get<Function>(this->data_); }
+		Pointer & getPointer () { return ::std::get<Pointer >(this->data_); }
 
 		Null     const & getConstNull    () const { return ::std::get<Null    >(this->data_); }
 		Boolean  const & getConstBoolean () const { return ::std::get<Boolean >(this->data_); }
@@ -71,5 +75,6 @@ namespace dynamic {
 		Array    const & getConstArray   () const { return ::std::get<Array   >(this->data_); }
 		Object   const & getConstObject  () const { return ::std::get<Object  >(this->data_); }
 		Function const & getConstFunction() const { return ::std::get<Function>(this->data_); }
+		Pointer  const & getConstPointer () const { return ::std::get<Pointer >(this->data_); }
 	};
 }

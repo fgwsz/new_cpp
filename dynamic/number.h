@@ -2,7 +2,7 @@
 #include<numeric>
 #include<optional>
 namespace dynamic {
-	struct Number {
+	class Number final {
 	private:
 		using data_t = double;
 		data_t data_;

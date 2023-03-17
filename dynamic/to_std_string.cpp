@@ -1,4 +1,5 @@
 #include"to_std_string.h"
+#include<sstream>
 namespace dynamic {
 	::std::string toStdString(Null const& value) {
 		return "null";
@@ -67,7 +68,18 @@ namespace dynamic {
 		return ret.append("}");
 	}
 	::std::string toStdString(Function const& value) {
-		return "(Value)->Value{...}";
+		return "<Function Value(Value)>";
+	}
+	::std::string toStdString(Pointer  const& value) {
+		::std::ostringstream oss;
+		oss << ::std::hex << reinterpret_cast<unsigned long long>(value);
+		auto ret = oss.str();
+		for (auto& element : ret) {
+			if (element >= 'a' && element <= 'z') {
+				element += 'A' - 'a';
+			}
+		}
+		return "<Pointer " + ret + ">";
 	}
 	::std::string toStdString(Value const& value) {
 		if (value.isNull()) {
@@ -90,6 +102,9 @@ namespace dynamic {
 		}
 		else if (value.isFunction()) {
 			return toStdString(value.getConstFunction());
+		}
+		else if (value.isPointer()) {
+			return toStdString(value.getConstPointer());
 		}
 		else { return "error"; }
 	}

@@ -1,6 +1,6 @@
 #pragma once
 namespace dynamic {
-	class Boolean {
+	class Boolean final {
 	private:
 		bool data_;
 	public:
