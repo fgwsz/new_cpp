@@ -18,15 +18,21 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="dynamic_object\object.cpp">
+    <ClCompile Include="dynamic\value.h">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="dynamic\to_std_string.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dynamic_object\void.h">
+    <ClInclude Include="dynamic\number.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="dynamic_object\number.h">
+    <ClInclude Include="dynamic\to_std_string.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamic\boolean.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

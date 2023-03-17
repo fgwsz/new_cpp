@@ -131,12 +131,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dynamic_object\object.cpp" />
+    <ClCompile Include="dynamic\to_std_string.cpp" />
+    <ClCompile Include="dynamic\value.h" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dynamic_object\number.h" />
-    <ClInclude Include="dynamic_object\void.h" />
+    <ClInclude Include="dynamic\boolean.h" />
+    <ClInclude Include="dynamic\number.h" />
+    <ClInclude Include="dynamic\to_std_string.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
