@@ -13,5 +13,6 @@ int main(void) {
 	::std::cout << toStdString(val) << ::std::endl;
 	::std::cout << "&val = " << & val << ::std::endl;
 	::std::cout << "sizeof(val) = " << sizeof(val) << ::std::endl;
+	
 	return 0;
 }
