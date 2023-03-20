@@ -55,5 +55,12 @@ int main(void) {
 	for (auto const& elem : vec) {
 		::std::cout << elem << ::std::endl;
 	}
+	using Type = typename TypeList_CreateN<StaticSizeValue<4>, int>::Type;
+	using ATypes = TypeList<int, _, bool, _, char, _>;
+	using Ret = typename TypeList_Replace<
+		ATypes, _, 
+		typename TypeList_CreateN<StaticSizeValue<10>, EmptyType>::Type
+	>::Type;
+	::std::cout << typeid(Ret).name() << ::std::endl;
 	return 0;
 }

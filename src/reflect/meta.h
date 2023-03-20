@@ -1,6 +1,8 @@
 #pragma once
+template<template<typename...>class _ClassTemplate,typename..._Args>
+struct ClassTemplateWrapper;
 template<template<typename...>class _ClassTemplate>
-struct ClassTemplateWrapper {
+struct ClassTemplateWrapper<_ClassTemplate> {
 	template<typename..._Args>
 	struct Derived : _ClassTemplate<_Args...> {};
 	template<typename..._Args>
@@ -163,7 +165,7 @@ struct TypeList_GetElem {
 		struct Case_1{
 			using Type = typename Case_1<
 				typename TypeList_Tail<__TypeList>::Type,
-				StaticValue<SizeType, __Index::value_ == 0 ? 0 : __Index::value_ - 1>
+				StaticValue<SizeType, __Index::value_ == 0 ? 0 : (__Index::value_ - 1)>
 			>::Type;
 		};
 		template<typename __HeadType,typename...__Types>
@@ -199,8 +201,8 @@ struct TypeList_Concat {
 	};
 	using Type = typename Impl<_Args...>::Type;
 };
-using PlaceHolderType = UndefinedType;
-using _ = PlaceHolderType;
+struct PlaceHolder;
+using _ = PlaceHolder;
 template<typename..._Args>
 struct TypeList_SetElem {
 	// _Index:StaticValue<SizeType,_size_value>
@@ -218,7 +220,7 @@ struct TypeList_SetElem {
 				TypeList<typename TypeList_Head<__TypeList>::Type>,
 				typename Case_1<
 					typename TypeList_Tail<__TypeList>::Type,
-					StaticValue<SizeType, __Index::value_ == 0 ? 0 : __Index::value_ - 1>,
+					StaticValue<SizeType, __Index::value_ == 0 ? 0 : (__Index::value_ - 1)>,
 					__NewType
 				>::Type
 			>::Type;
@@ -238,5 +240,87 @@ struct TypeList_SetElem {
 		>::Type::template Instance<_TypeList,_Index,_NewType>::Type;
 	};
 	using Type = typename Impl<_Args...>::Type;
+};
+template<typename..._Args>
+struct TypeList_CreateN {
+	// _Count:StaticValue<SizeType,_size_value>
+	template<typename _Count,typename _ElemType>
+	struct Impl;
+	template<typename _Count,typename _ElemType>
+	struct Impl {
+		using Type = typename TypeList_Concat <
+			TypeList<_ElemType>,
+			typename Impl<StaticSizeValue<_Count::value_ == 0 ? 0 : (_Count::value_ - 1)>, _ElemType > ::Type
+		>::Type;
+	};
+	template<typename _ElemType>
+	struct Impl<StaticSizeValue<0>,_ElemType> {
+		using Type = TypeList<>;
+	};
+	using Type = typename Impl<_Args...>::Type;
+};
+template<typename..._Args>
+struct TypeList_Replace {
+	template<typename _TypeList,typename _ElemType,typename _NewTypeList>
+	struct Impl;
+	template<typename _TypeList,typename _ElemType,typename _NewTypeList,typename _CanLoop,typename _Result>
+	struct _Impl;
+	template<typename _TypeList,typename _ElemType,typename _NewTypeList>
+	struct Impl {
+		using CanLoop = StaticAutoValue<
+			!TypeList_Empty<_TypeList>::Type::value_ &&
+			!TypeList_Empty<_NewTypeList>::Type::value_
+		>;
+		using Type = typename _Impl<CanLoop,TypeList<>,_ElemType,_TypeList,_NewTypeList>::Type;
+	};
+	template<typename _Result,typename _ElemType,typename _TypeList,typename _NewTypeList>
+	struct _Impl <TrueType, _Result, _ElemType, _TypeList, _NewTypeList> {
+		using ElemTypeIsMatch = typename IsSame<
+			typename TypeList_Head<_TypeList>::Type,
+			_ElemType
+		>::Type;
+		using TypeListIsEmpty = typename TypeList_Empty<_TypeList>::Type;
+		using NewTypeListIsEmpty = typename TypeList_Empty<_NewTypeList>::Type;
+		using NextTypeList = typename IfThenElse<
+			TypeListIsEmpty,
+			TypeList<>,
+			typename TypeList_Tail<_TypeList>::Type
+		>::Type;
+		using NextNewTypeList = typename IfThenElse< 
+			ElemTypeIsMatch,
+			typename IfThenElse<
+			    NewTypeListIsEmpty,
+			    TypeList<>,
+			    typename TypeList_Tail<_NewTypeList>::Type
+			>::Type,
+			_NewTypeList
+		>::Type;
+		using NextCanLoop = StaticAutoValue<
+			!TypeList_Empty<NextTypeList>::Type::value_ &&
+			!TypeList_Empty<NextNewTypeList>::Type::value_
+		>;
+		using NextResult = typename TypeList_Concat<
+			_Result,
+			typename IfThenElse<
+			    TypeListIsEmpty,
+			    TypeList<>,
+			    typename TypeList_Head<_TypeList>::Type
+			>::Type
+		>::Type;
+		using Type = typename _Impl<NextCanLoop, NextResult, _ElemType, NextTypeList, NextNewTypeList>::Type;
+	};
+	template<typename _Result,typename _ElemType,typename _TypeList,typename _NewTypeList>
+	struct _Impl <FalseType, _Result, _ElemType, _TypeList, _NewTypeList> {
+		using Type = _Result;
+	};
+	using Type = typename Impl<_Args...>::Type;
+};
+// 
+template<template<typename...>class _ClassTemplate, typename _HeadType, typename..._Types>
+struct ClassTemplateWrapper<_ClassTemplate,_HeadType,_Types...> {
+	template<typename..._Args>
+	struct Derived : _ClassTemplate<_Args...> {};
+	template<typename..._Args>
+	using Instance = _ClassTemplate<_Args...>;
 };
 
