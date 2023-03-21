@@ -4,9 +4,9 @@ struct ClassTemplateWrapper;
 template<template<typename...>class _ClassTemplate>
 struct ClassTemplateWrapper<_ClassTemplate> {
 	template<typename..._Args>
-	struct Derived : _ClassTemplate<_Args...> {};
-	template<typename..._Args>
 	using Instance = _ClassTemplate<_Args...>;
+	template<typename..._Args>
+	using Binder = ClassTemplateWrapper<_ClassTemplate,_Args...>;
 };
 template<typename _Type>
 struct GetType {
@@ -268,8 +268,8 @@ struct TypeList_Replace {
 	template<typename _TypeList,typename _ElemType,typename _NewTypeList>
 	struct Impl {
 		using CanLoop = StaticAutoValue<
-			!TypeList_Empty<_TypeList>::Type::value_ &&
-			!TypeList_Empty<_NewTypeList>::Type::value_
+			(!TypeList_Empty<_TypeList>::Type::value_) &&
+			(!TypeList_Empty<_NewTypeList>::Type::value_)
 		>;
 		using Type = typename _Impl<CanLoop,TypeList<>,_ElemType,_TypeList,_NewTypeList>::Type;
 	};
@@ -296,31 +296,49 @@ struct TypeList_Replace {
 			_NewTypeList
 		>::Type;
 		using NextCanLoop = StaticAutoValue<
-			!TypeList_Empty<NextTypeList>::Type::value_ &&
-			!TypeList_Empty<NextNewTypeList>::Type::value_
+			(!TypeList_Empty<NextTypeList>::Type::value_) &&
+			(!TypeList_Empty<NextNewTypeList>::Type::value_)
 		>;
+		using CurrentElemType = typename IfThenElse<
+			ElemTypeIsMatch,
+			typename TypeList_Head<_NewTypeList>::Type,
+			typename TypeList_Head<_TypeList>::Type
+		>::Type;
 		using NextResult = typename TypeList_Concat<
 			_Result,
 			typename IfThenElse<
 			    TypeListIsEmpty,
 			    TypeList<>,
-			    typename TypeList_Head<_TypeList>::Type
+			    TypeList<CurrentElemType>
 			>::Type
 		>::Type;
 		using Type = typename _Impl<NextCanLoop, NextResult, _ElemType, NextTypeList, NextNewTypeList>::Type;
 	};
 	template<typename _Result,typename _ElemType,typename _TypeList,typename _NewTypeList>
 	struct _Impl <FalseType, _Result, _ElemType, _TypeList, _NewTypeList> {
-		using Type = _Result;
+		using Type = typename TypeList_Concat<
+			_Result,
+			_TypeList
+		>::Type;
 	};
 	using Type = typename Impl<_Args...>::Type;
 };
-// 
 template<template<typename...>class _ClassTemplate, typename _HeadType, typename..._Types>
 struct ClassTemplateWrapper<_ClassTemplate,_HeadType,_Types...> {
 	template<typename..._Args>
-	struct Derived : _ClassTemplate<_Args...> {};
+	using Instance = typename TypeList_To<
+		typename TypeList_Replace<TypeList<_HeadType, _Types...>, PlaceHolder, TypeList<_Args...>>::Type,
+		ClassTemplateWrapper<_ClassTemplate>
+	>::Type;
+private:
+	template<typename ClassTemplateInstance>
+	struct _BinderImpl;
+	template<template<typename...>class __ClassTemplate,typename...__Types>
+	struct _BinderImpl<__ClassTemplate<__Types...>> {
+		using Type = ClassTemplateWrapper<__ClassTemplate, __Types...>;
+	};
+public:
 	template<typename..._Args>
-	using Instance = _ClassTemplate<_Args...>;
+	using Binder = typename _BinderImpl<Instance<_Args...>>::Type;
 };
 
