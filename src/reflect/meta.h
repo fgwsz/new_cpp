@@ -403,7 +403,7 @@ _staticStringImpl( \
 	) \
 ) \
 //
-template<typename..._StaticStringLiteral>
+template<typename _StaticStringLiteral>
 struct StaticStringValue;
 template<CharType..._chars>
 struct StaticStringValue<TypeList<StaticCharType<_chars>...>> {
