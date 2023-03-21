@@ -341,4 +341,72 @@ public:
 	template<typename..._Args>
 	using Binder = typename _BinderImpl<Instance<_Args...>>::Type;
 };
-
+template<typename..._Args>
+struct TypeList_CreateIndexSeq {
+	// _BeginIndex:StaticValue<SizeType,_value>
+	// _EndIndex:StaticValue<SizeType,_value>
+	// _BeginIndex < _EndIndex
+	// return Type:TypeList<StaticValue<SizeType,_BeginIndex>,...,StaticValue<SizeType,_EndIndex>>
+	template<typename _BeginIndex,typename _EndIndex>
+	struct Impl;
+	template<typename _InputIsValid,typename _BeginIndex,typename _EndIndex>
+	struct _Impl;
+	template<typename _BeginIndex,typename _EndIndex>
+	struct Impl {
+		using Type = typename _Impl <
+			StaticAutoValue<_BeginIndex::value_ < _EndIndex::value_>,
+			_BeginIndex,
+			_EndIndex
+		>::Type;
+	};
+	template<typename _BeginIndex,typename _EndIndex>
+	struct _Impl<TrueType, _BeginIndex, _EndIndex> {
+		using Type = typename TypeList_Concat<
+			TypeList<_BeginIndex>,
+			typename _Impl<TrueType, StaticAutoValue<_BeginIndex::value_ + 1>, _EndIndex>::Type
+		>::Type;
+	};
+	template<typename _CurrentIndex>
+	struct _Impl<TrueType, _CurrentIndex, _CurrentIndex> {
+		using Type = TypeList<>;
+	};
+	template<typename _BeginIndex,typename _EndIndex>
+	struct _Impl<FalseType,_BeginIndex,_EndIndex> {
+		using Type = UndefinedType;
+	};
+	using Type = typename Impl<_Args...>::Type;
+};
+using CharType = char;
+template<CharType _value>
+using StaticCharType = StaticValue<CharType, _value>;
+#define _STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__) \
+decltype([]() { \
+	struct _StaticStringImpl { \
+		constexpr decltype(auto) value() const { return __C_STYLE_STRING_LITERAL__; } \
+		constexpr auto length() const { return sizeof(this->value()) / sizeof(this->value()[0]) - 1; } \
+	}; \
+	return _StaticStringImpl(); \
+}()) \
+//
+template<typename _StaticStringImplType,SizeType..._Indexs>
+constexpr decltype(auto) _staticStringImpl(_StaticStringImplType,TypeList<StaticSizeValue<_Indexs>...>) {
+	return TypeList<StaticCharType<_StaticStringImplType().value()[_Indexs]>...>();
+}
+#define STATIC_STRING_LITERAL(__C_STYLE_STRING_LITERAL__) \
+decltype( \
+_staticStringImpl( \
+		_STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__)(), \
+        typename TypeList_CreateIndexSeq< \
+            StaticSizeValue<0>, \
+            StaticSizeValue<_STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__)().length()> \
+       >::Type() \
+	) \
+) \
+//
+template<typename..._StaticStringLiteral>
+struct StaticStringValue;
+template<CharType..._chars>
+struct StaticStringValue<TypeList<StaticCharType<_chars>...>> {
+	static constexpr CharType value_[sizeof...(_chars) + 1]{ _chars...,CharType{'\0'} };
+	using Type = decltype(value_);
+};
