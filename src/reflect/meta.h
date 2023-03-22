@@ -8,17 +8,20 @@ struct ClassTemplateWrapper<_ClassTemplate> {
 	template<typename..._Args>
 	using Binder = ClassTemplateWrapper<_ClassTemplate,_Args...>;
 };
-template<typename _Type>
-struct GetType {
-	using Type = _Type;
-};
+template<typename _Type,_Type..._value>
+struct StaticValue;
 template<typename _Type,_Type _value>
-struct StaticValue {
+struct StaticValue<_Type,_value> {
 	using Type = _Type;
 	static constexpr _Type value_ = _value;
 };
-template<auto _value>
-using StaticAutoValue = StaticValue<decltype(_value),_value>;
+template<typename _Type,_Type _first_value,_Type _seconde_value,_Type..._values>
+struct StaticValue<_Type,_first_value,_seconde_value,_values...> {
+	static constexpr _Type value_[sizeof...(_values) + 2] { _first_value,_seconde_value,_values... };
+	using Type = decltype(value_);
+};
+template<auto _first_value,auto..._values>
+using StaticAutoValue = StaticValue<decltype(_first_value),_first_value,_values...>;
 using TrueType = StaticAutoValue<true>;
 using FalseType = StaticAutoValue<false>;
 struct UndefinedType;
@@ -390,23 +393,14 @@ decltype([]() { \
 //
 template<typename _StaticStringImplType,SizeType..._Indexs>
 constexpr decltype(auto) _staticStringImpl(_StaticStringImplType,TypeList<StaticSizeValue<_Indexs>...>) {
-	return TypeList<StaticCharType<_StaticStringImplType().value()[_Indexs]>...>();
+	return StaticValue<CharType,_StaticStringImplType().value()[_Indexs]...>();
 }
-#define STATIC_STRING_LITERAL(__C_STYLE_STRING_LITERAL__) \
-decltype( \
-_staticStringImpl( \
-		_STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__)(), \
-        typename TypeList_CreateIndexSeq< \
-            StaticSizeValue<0>, \
-            StaticSizeValue<_STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__)().length()> \
-       >::Type() \
-	) \
-) \
+#define STATIC_STRING_VALUE(__C_STYLE_STRING_LITERAL__) \
+decltype(_staticStringImpl( \
+	_STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__)(), \
+	typename TypeList_CreateIndexSeq< \
+		StaticSizeValue<0>, \
+		StaticSizeValue<_STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__)().length()> \
+   >::Type() \
+)) \
 //
-template<typename _StaticStringLiteral>
-struct StaticStringValue;
-template<CharType..._chars>
-struct StaticStringValue<TypeList<StaticCharType<_chars>...>> {
-	static constexpr CharType value_[sizeof...(_chars) + 1]{ _chars...,CharType{'\0'} };
-	using Type = decltype(value_);
-};
