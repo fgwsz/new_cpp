@@ -5,8 +5,8 @@ int main(void) {
 		StaticAutoValue<true>,
 		StaticAutoValue<100,200>,
 		StaticAutoValue<3.14,2.2>,
-		STATIC_STRING_VALUE("hello world")
+		STATIC_STRING("hello world")
 	>).name() << ::std::endl;
-	::std::cout << STATIC_STRING_VALUE("hello world")::value_ << ::std::endl;
+	::std::cout << typeid(STATIC_STRING("time")::value_).name() << ::std::endl;
 	return 0;
 }

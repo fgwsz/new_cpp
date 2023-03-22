@@ -25,11 +25,9 @@ using StaticAutoValue = StaticValue<decltype(_first_value),_first_value,_values.
 using TrueType = StaticAutoValue<true>;
 using FalseType = StaticAutoValue<false>;
 struct UndefinedType;
-using NullType = void;
 using SizeType = unsigned long long;
 template<SizeType _value>
 using StaticSizeValue = StaticValue<SizeType, _value>;
-struct EmptyType{};
 template<typename..._Args>
 struct IfThenElse {
 	// _BoolExpr:StaticValue<bool,_bool_expr>
@@ -266,7 +264,7 @@ template<typename..._Args>
 struct TypeList_Replace {
 	template<typename _TypeList,typename _ElemType,typename _NewTypeList>
 	struct Impl;
-	template<typename _TypeList,typename _ElemType,typename _NewTypeList,typename _CanLoop,typename _Result>
+	template<typename _CanLoop,typename _Result,typename _ElemType,typename _TypeList,typename _NewTypeList>
 	struct _Impl;
 	template<typename _TypeList,typename _ElemType,typename _NewTypeList>
 	struct Impl {
@@ -379,28 +377,30 @@ struct TypeList_CreateIndexSeq {
 	};
 	using Type = typename Impl<_Args...>::Type;
 };
-using CharType = char;
-template<CharType _value>
-using StaticCharType = StaticValue<CharType, _value>;
-#define _STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__) \
-decltype([]() { \
-	struct _StaticStringImpl { \
-		constexpr decltype(auto) value() const { return __C_STYLE_STRING_LITERAL__; } \
-		constexpr auto length() const { return sizeof(this->value()) / sizeof(this->value()[0]) - 1; } \
-	}; \
-	return _StaticStringImpl(); \
-}()) \
-//
-template<typename _StaticStringImplType,SizeType..._Indexs>
-constexpr decltype(auto) _staticStringImpl(_StaticStringImplType,TypeList<StaticSizeValue<_Indexs>...>) {
-	return StaticValue<CharType,_StaticStringImplType().value()[_Indexs]...>();
+template<typename _StaticStringImpl,SizeType..._Indexs>
+constexpr decltype(auto) __staticStringImpl(_StaticStringImpl impl,TypeList<StaticSizeValue<_Indexs>...>) {
+	return StaticAutoValue<impl.value()[_Indexs]...>();
 }
-#define STATIC_STRING_VALUE(__C_STYLE_STRING_LITERAL__) \
-decltype(_staticStringImpl( \
-	_STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__)(), \
-	typename TypeList_CreateIndexSeq< \
-		StaticSizeValue<0>, \
-		StaticSizeValue<_STATIC_STRING_IMPL_TYPE(__C_STYLE_STRING_LITERAL__)().length()> \
-   >::Type() \
+template<typename _StaticStringImpl>
+constexpr decltype(auto) _staticStringImpl(_StaticStringImpl impl) {
+	return ::__staticStringImpl(
+		impl,
+		typename TypeList_CreateIndexSeq< 
+			StaticSizeValue<0>,
+			StaticSizeValue<(
+				sizeof(impl.value())    /
+				sizeof(impl.value()[0]) 
+		   ) - 1>
+	   >::Type()
+	);
+}
+#define STATIC_STRING(__C_STYLE_STRING_LITERAL__) \
+decltype(::_staticStringImpl( \
+	[]{ \
+		struct _StaticStringImpl { \
+			constexpr decltype(auto) value() const { return __C_STYLE_STRING_LITERAL__; } \
+		}; \
+		return _StaticStringImpl(); \
+	}() \
 )) \
 //
