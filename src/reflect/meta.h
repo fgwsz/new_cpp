@@ -387,11 +387,8 @@ constexpr decltype(auto) _staticStringImpl(_StaticStringImpl impl) {
 		impl,
 		typename TypeList_CreateIndexSeq< 
 			StaticSizeValue<0>,
-			StaticSizeValue<(
-				sizeof(impl.value())    /
-				sizeof(impl.value()[0]) 
-		   ) - 1>
-	   >::Type()
+			StaticSizeValue<sizeof(impl.value()) / sizeof(impl.value()[0])>
+		>::Type()
 	);
 }
 #define STATIC_STRING(__C_STYLE_STRING_LITERAL__) \

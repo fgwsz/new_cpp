@@ -1,74 +1,89 @@
 #pragma once
 #include<string>
-using StringType = ::std::string;
-using SizeType = unsigned long long;
+template<typename _Type>
+struct TypeInfo;
 template<typename _Type>
 struct TypeInfo {
-private:
-	static constexpr StringType typeName() {
-		StringType ret{ __FUNCTION__ };
+	static constexpr auto name() { 
+		::std::string ret(__FUNCTION__);
 		auto begin_index = ret.find_first_of('<') + 1;
 		auto end_index = ret.find_last_of('>');
 		return ret.substr(begin_index, end_index - begin_index);
-	}
-public:
-	static constexpr auto string() { 
-		return TypeInfo<_Type>::typeName();
 	}
 };
 #define _TYPE_INFO_BASE_IMPL(__EXT__) \
 template<typename _Type> \
 struct TypeInfo<_Type __EXT__> { \
-	static auto string() { \
-		return StringType{"{"} + TypeInfo<_Type>::string() + StringType{"}"} + StringType{ #__EXT__ }; \
+	static auto name() { \
+		return ::std::string("{") \
+			.append(TypeInfo<_Type>::name()) \
+			.append("}"#__EXT__); \
 	} \
 }; \
 //
 #define _TYPE_INFO_ARRAY_IMPL(__EXT__) \
-template<typename _Type,SizeType _N> \
+template<typename _Type,::std::size_t _N> \
 struct TypeInfo<_Type __EXT__[_N]> { \
-	static auto string() { \
-		return StringType{ "{" } + TypeInfo<_Type>::string() + \
-			StringType{ "}"} + StringType{ #__EXT__ } + \
-            StringType{ "[" } + ::std::to_string(_N) + StringType{"]"}; \
+	static auto name() { \
+		return ::std::string{ "{" } \
+            .append(TypeInfo<_Type>::name()) \
+			.append("}"#__EXT__"[") \
+            .append(::std::to_string(_N)) \
+            .append("]"); \
 	} \
 }; \
 //
 template<typename _ClassType,typename _Type>
 struct TypeInfo<_Type _ClassType::*> {
-	static auto string() { 
-		return StringType{ "{" } + TypeInfo<_Type>::string() + 
-			StringType{ "}{" } + TypeInfo<_ClassType>::string() + StringType{"}::*"};
+	static auto name() { 
+		return ::std::string("{")
+			.append(TypeInfo<_Type>::name())
+			.append("}{")
+			.append(TypeInfo<_ClassType>::name())
+			.append("}::*");
 	}
 };
 #define _TYPE_INFO_FUNCTION_IMPL(__EXT__) \
 template<typename _RetType,typename..._Types> \
 struct TypeInfo<_RetType(_Types...)__EXT__> { \
-	static auto string() { \
+	static auto name() { \
 		if constexpr (sizeof...(_Types) != 0) { \
-			StringType arg_list = (TypeInfo<_Types>::string().append(StringType{ "," }) + ...); \
+			::std::string arg_list = ( \
+				TypeInfo<_Types>::name() \
+				.append(",") + ... \
+			); \
             arg_list.pop_back(); \
-			return StringType{ "{" } + TypeInfo<_RetType>::string() + \
-				StringType{ "}(" } + arg_list + StringType{ ")" } + StringType{ #__EXT__ }; \
+			return ::std::string("{") \
+				.append(TypeInfo<_RetType>::name()) \
+				.append("}(") \
+				.append(arg_list) \
+				.append(")"#__EXT__); \
 		} \
 		else { \
-			return StringType{ "{" } + TypeInfo<_RetType>::string() + \
-				StringType{ "}(void)" } + StringType{ #__EXT__ }; \
+			return ::std::string("{") \
+                .append(TypeInfo<_RetType>::name()) \
+				.append("}(void)"#__EXT__); \
 		} \
 	} \
 }; \
 template<typename _RetType,typename..._Types> \
 struct TypeInfo<_RetType(_Types...,...)__EXT__> { \
-	static auto string() { \
+	static auto name() { \
 		if constexpr (sizeof...(_Types) != 0) { \
-			; \
-			return StringType{ "{" } + TypeInfo<_RetType>::string() + \
-				StringType{ "}(" } + (TypeInfo<_Types>::string().append(StringType{ "," }) + ...) + \
-                StringType{ "...)" } + StringType{ #__EXT__ }; \
+			::std::string arg_list = ( \
+				TypeInfo<_Types>::name() \
+				.append(",") + ... \
+			); \
+			return ::std::string("{") \
+				.append(TypeInfo<_RetType>::name()) \
+				.append("}(") \
+                .append(arg_list) \
+                .append("...)"#__EXT__); \
 		} \
 		else { \
-			return StringType{ "{" } + TypeInfo<_RetType>::string() + \
-				StringType{ "}(...)" } + StringType{ #__EXT__ }; \
+			return ::std::string("{") \
+                .append(TypeInfo<_RetType>::name()) \
+				.append("}(...)"#__EXT__); \
 		} \
 	} \
 }; \
