@@ -1,2 +1,0 @@
-D:\MyWorkSpace\GitProjects\new_cpp\new_cpp\x64\Debug\new_cpp.exe
-D:\MyWorkSpace\GitProjects\new_cpp\x64\Debug\new_cpp.exe

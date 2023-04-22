@@ -1,4 +1,0 @@
-﻿  main.cpp
-D:\MyWorkSpace\GitProjects\new_cpp\src\reflect\type.h(103,1): warning C4003: 类函数宏的调用“_TYPE_INFO_ARRAY_IMPL”参数不足
-D:\MyWorkSpace\GitProjects\new_cpp\src\reflect\type.h(109,1): warning C4003: 类函数宏的调用“_TYPE_INFO_FUNCTION_IMPL”参数不足
-  new_cpp.vcxproj -> D:\MyWorkSpace\GitProjects\new_cpp\x64\Debug\new_cpp.exe
